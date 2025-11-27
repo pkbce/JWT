@@ -71,3 +71,4 @@ Route::post('ul_reset_consumption', [AuthController::class, 'ul_reset_consumptio
 Route::get('consumption/data', [ConsumptionController::class, 'getConsumptionData']);
 Route::get('consumption/history', [ConsumptionController::class, 'getConsumptionHistory']);
 Route::post('consumption/sync-firebase', [ConsumptionController::class, 'syncFirebaseData']);
+Route::post('consumption/check-reset', [ConsumptionController::class, 'checkReset']);

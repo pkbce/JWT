@@ -303,4 +303,177 @@ class ConsumptionController extends Controller
 
         return $tables[$load_type] ?? null;
     }
+
+    /**
+     * Check and perform resets if needed
+     */
+    public function checkReset(Request $request)
+    {
+        $db_name = $request->input('name');
+        if (!$db_name) {
+            return response()->json(['error' => 'Database name is required'], 400);
+        }
+
+        $conn = new mysqli("localhost", "root", "", $db_name);
+        if ($conn->connect_error) {
+            return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
+        }
+
+        // Ensure reset_logs table exists
+        $checkTable = $conn->query("SHOW TABLES LIKE 'reset_logs'");
+        if ($checkTable->num_rows == 0) {
+            // Create table if not exists (fallback)
+            $sql = "CREATE TABLE `reset_logs` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `reset_type` varchar(50) NOT NULL,
+                `last_reset_at` timestamp NOT NULL DEFAULT current_timestamp(),
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `reset_type` (`reset_type`)
+            )";
+            $conn->query($sql);
+            
+            // Seed initial values
+            $now = date('Y-m-d H:i:s');
+            $conn->query("INSERT INTO `reset_logs` (`reset_type`, `last_reset_at`) VALUES 
+                ('daily', '$now'),
+                ('weekly', '$now'),
+                ('monthly', '$now'),
+                ('yearly', '$now')
+            ");
+        }
+
+        $resetsPerformed = [];
+        $errors = [];
+
+        // 1. Check Daily Reset
+        // Reset if last_reset < Today 00:00:00
+        $todayStart = strtotime('today midnight');
+        if ($this->shouldReset($conn, 'daily', $todayStart)) {
+            if ($this->performDailyReset($conn)) {
+                $this->updateLastReset($conn, 'daily');
+                $resetsPerformed[] = 'daily';
+            } else {
+                $errors[] = 'Daily reset failed: ' . $conn->error;
+            }
+        }
+
+        // 2. Check Weekly Reset
+        // Reset if last_reset < This Week Start (Monday 00:00:00)
+        $weekStart = strtotime('monday this week midnight');
+        if ($this->shouldReset($conn, 'weekly', $weekStart)) {
+            if ($this->performWeeklyReset($conn)) {
+                $this->updateLastReset($conn, 'weekly');
+                $resetsPerformed[] = 'weekly';
+            } else {
+                $errors[] = 'Weekly reset failed: ' . $conn->error;
+            }
+        }
+
+        // 3. Check Monthly Reset
+        // Reset if last_reset < This Month Start (1st 00:00:00)
+        $monthStart = strtotime('first day of this month midnight');
+        if ($this->shouldReset($conn, 'monthly', $monthStart)) {
+            if ($this->performMonthlyReset($conn)) {
+                $this->updateLastReset($conn, 'monthly');
+                $resetsPerformed[] = 'monthly';
+            } else {
+                $errors[] = 'Monthly reset failed: ' . $conn->error;
+            }
+        }
+
+        // 4. Check Yearly Reset
+        // Reset if last_reset < This Year Start (Jan 1st 00:00:00)
+        $yearStart = strtotime('first day of january this year midnight');
+        if ($this->shouldReset($conn, 'yearly', $yearStart)) {
+            if ($this->performYearlyReset($conn)) {
+                $this->updateLastReset($conn, 'yearly');
+                $resetsPerformed[] = 'yearly';
+            } else {
+                $errors[] = 'Yearly reset failed: ' . $conn->error;
+            }
+        }
+
+        $conn->close();
+
+        return response()->json([
+            'success' => true,
+            'resets_performed' => $resetsPerformed,
+            'errors' => $errors,
+            'timestamp' => now()->toIso8601String()
+        ]);
+    }
+
+    private function shouldReset($conn, $type, $thresholdTimestamp)
+    {
+        $result = $conn->query("SELECT `last_reset_at` FROM `reset_logs` WHERE `reset_type` = '$type'");
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $lastReset = strtotime($row['last_reset_at']);
+            return $lastReset < $thresholdTimestamp;
+        }
+        // If no record, assume reset needed (or create record)
+        return true;
+    }
+
+    private function updateLastReset($conn, $type)
+    {
+        $now = date('Y-m-d H:i:s');
+        // Use ON DUPLICATE KEY UPDATE to handle missing rows if any
+        $conn->query("INSERT INTO `reset_logs` (`reset_type`, `last_reset_at`) VALUES ('$type', '$now') ON DUPLICATE KEY UPDATE `last_reset_at` = '$now'");
+    }
+
+    private function performDailyReset($conn)
+    {
+        $tables = ['light_loads', 'medium_loads', 'heavy_loads', 'universal_loads'];
+        $success = true;
+        foreach ($tables as $table) {
+            // Reset daily buckets and daily totals
+            $sql = "UPDATE `$table` SET 
+                `h4` = 0, `h8` = 0, `h12` = 0, `h16` = 0, `h20` = 0, `h24` = 0,
+                `eu_daily` = 0, `ec_daily` = 0";
+            if (!$conn->query($sql)) $success = false;
+        }
+        return $success;
+    }
+
+    private function performWeeklyReset($conn)
+    {
+        $tables = ['light_loads', 'medium_loads', 'heavy_loads', 'universal_loads'];
+        $success = true;
+        foreach ($tables as $table) {
+            // Reset weekly buckets (days)
+            $sql = "UPDATE `$table` SET 
+                `mon` = 0, `tue` = 0, `wed` = 0, `thu` = 0, `fri` = 0, `sat` = 0, `sun` = 0";
+            if (!$conn->query($sql)) $success = false;
+        }
+        return $success;
+    }
+
+    private function performMonthlyReset($conn)
+    {
+        $tables = ['light_loads', 'medium_loads', 'heavy_loads', 'universal_loads'];
+        $success = true;
+        foreach ($tables as $table) {
+            // Reset monthly buckets (weeks) and monthly totals
+            $sql = "UPDATE `$table` SET 
+                `week1` = 0, `week2` = 0, `week3` = 0, `week4` = 0,
+                `eu_monthly` = 0, `ec_monthly` = 0";
+            if (!$conn->query($sql)) $success = false;
+        }
+        return $success;
+    }
+
+    private function performYearlyReset($conn)
+    {
+        $tables = ['light_loads', 'medium_loads', 'heavy_loads', 'universal_loads'];
+        $success = true;
+        foreach ($tables as $table) {
+            // Reset yearly buckets (months)
+            $sql = "UPDATE `$table` SET 
+                `jan` = 0, `feb` = 0, `mar` = 0, `apr` = 0, `may` = 0, `jun` = 0, 
+                `jul` = 0, `aug` = 0, `sep` = 0, `oct` = 0, `nov` = 0, `dec` = 0";
+            if (!$conn->query($sql)) $success = false;
+        }
+        return $success;
+    }
 }

@@ -168,6 +168,22 @@ setInterval(() => {
     console.log('='.repeat(50) + '\n');
 }, 60000);
 
+// Check for resets every minute
+setInterval(async () => {
+    try {
+        const response = await axios.post(
+            `${CONFIG.laravelApiUrl}/consumption/check-reset`,
+            { name: CONFIG.userDatabase },
+            { timeout: 5000 }
+        );
+        if (response.data.resets_performed && response.data.resets_performed.length > 0) {
+            log('✓ Performed resets:', response.data.resets_performed.join(', '));
+        }
+    } catch (error) {
+        console.error('✗ Reset check failed:', error.message);
+    }
+}, 60000);
+
 // Handle graceful shutdown
 process.on('SIGINT', () => {
     console.log('\nShutting down Firebase sync service...');
