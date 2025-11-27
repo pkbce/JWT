@@ -35,7 +35,7 @@ class AuthController extends Controller
 
     public function create_db(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $conn = new mysqli("localhost", "root", "");
         $sql = "CREATE DATABASE `{$db_name}`";
         if ($conn->query($sql) === TRUE) {
@@ -138,7 +138,7 @@ class AuthController extends Controller
     //database routing
     public function ll_db_route(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $conn = new mysqli("localhost", "root", "", $db_name);
 
         if ($conn->connect_error) {
@@ -160,7 +160,7 @@ class AuthController extends Controller
 
     public function ml_db_route(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $conn = new mysqli("localhost", "root", "", $db_name);
 
         if ($conn->connect_error) {
@@ -182,7 +182,7 @@ class AuthController extends Controller
 
     public function hl_db_route(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $conn = new mysqli("localhost", "root", "", $db_name);
 
         if ($conn->connect_error) {
@@ -204,7 +204,7 @@ class AuthController extends Controller
 
     public function ul_db_route(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $conn = new mysqli("localhost", "root", "", $db_name);
 
         if ($conn->connect_error) {
@@ -228,7 +228,7 @@ class AuthController extends Controller
     //power status
     public function ll_change_power_status(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -255,7 +255,7 @@ class AuthController extends Controller
 
     public function ml_change_power_status(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -282,7 +282,7 @@ class AuthController extends Controller
 
     public function hl_change_power_status(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -309,7 +309,7 @@ class AuthController extends Controller
 
     public function ul_change_power_status(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -338,7 +338,7 @@ class AuthController extends Controller
     //row deletion
     public function ll_delete_row(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $conn = new mysqli("localhost", "root", "", $db_name);
         if ($conn->connect_error) {
@@ -364,7 +364,7 @@ class AuthController extends Controller
 
     public function ml_delete_row(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $conn = new mysqli("localhost", "root", "", $db_name);
         if ($conn->connect_error) {
@@ -390,7 +390,7 @@ class AuthController extends Controller
 
     public function hl_delete_row(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $conn = new mysqli("localhost", "root", "", $db_name);
         if ($conn->connect_error) {
@@ -416,7 +416,7 @@ class AuthController extends Controller
 
     public function ul_delete_row(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $conn = new mysqli("localhost", "root", "", $db_name);
         if ($conn->connect_error) {
@@ -444,7 +444,7 @@ class AuthController extends Controller
     //rename socket
     public function ll_change_socket_name(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -471,7 +471,7 @@ class AuthController extends Controller
 
     public function ml_change_socket_name(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -498,7 +498,7 @@ class AuthController extends Controller
 
     public function hl_change_socket_name(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -525,7 +525,7 @@ class AuthController extends Controller
 
     public function ul_change_socket_name(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -554,7 +554,7 @@ class AuthController extends Controller
     //adding socket
     public function ll_add_socket(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -582,7 +582,7 @@ class AuthController extends Controller
 
     public function ml_add_socket(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -610,7 +610,7 @@ class AuthController extends Controller
 
     public function hl_add_socket(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -638,7 +638,7 @@ class AuthController extends Controller
 
     public function ul_add_socket(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -696,7 +696,7 @@ class AuthController extends Controller
 
     // Consumption Update
     public function ll_update_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
         $ec_daily = $request->input('ec_daily');
@@ -721,7 +721,7 @@ class AuthController extends Controller
     }
 
     public function ml_update_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
         $ec_daily = $request->input('ec_daily');
@@ -746,7 +746,7 @@ class AuthController extends Controller
     }
 
     public function hl_update_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
         $ec_daily = $request->input('ec_daily');
@@ -771,7 +771,7 @@ class AuthController extends Controller
     }
 
     public function ul_update_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
         $ec_daily = $request->input('ec_daily');
@@ -797,7 +797,7 @@ class AuthController extends Controller
 
     // Consumption Reset
     public function ll_reset_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -818,7 +818,7 @@ class AuthController extends Controller
     }
 
     public function ml_reset_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -839,7 +839,7 @@ class AuthController extends Controller
     }
 
     public function hl_reset_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         
         $conn = new mysqli("localhost", "root", "", $db_name);
@@ -860,7 +860,7 @@ class AuthController extends Controller
     }
 
     public function ul_reset_consumption(Request $request) {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         
         $conn = new mysqli("localhost", "root", "", $db_name);
