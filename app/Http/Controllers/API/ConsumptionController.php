@@ -14,14 +14,17 @@ class ConsumptionController extends Controller
      */
     public function getConsumptionData(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $interval = $request->input('interval', '1D'); // 1D, 1W, 1M, 1Y
 
         if (!$db_name) {
             return response()->json(['error' => 'Database name is required'], 400);
         }
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
@@ -41,7 +44,7 @@ class ConsumptionController extends Controller
         foreach ($loads as $index => $table) {
             $query = "SELECT SUM({$field}) as total FROM `{$table}`";
             $result = $conn->query($query);
-            
+
             if ($result && $result->num_rows > 0) {
                 $row = $result->fetch_assoc();
                 $loadType = ['light', 'medium', 'heavy', 'universal'][$index];
@@ -79,7 +82,10 @@ class ConsumptionController extends Controller
             return response()->json(['error' => 'Invalid load type'], 400);
         }
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
@@ -88,17 +94,17 @@ class ConsumptionController extends Controller
         // Calculate energy consumed in this period (Watt-seconds to Watt-hours)
         $watt_hours = ($power * $duration_seconds) / 3600;
         $wh_int = (int)($watt_hours * 1000); // Store as integer with precision
-        
+
         // Get current time buckets
         $hourBucket = $this->getCurrentTimeBucket();
         $dayBucket = $this->getCurrentDayBucket();
         $weekBucket = $this->getCurrentWeekBucket();
         $monthBucket = $this->getCurrentMonthBucket();
-        
+
         // Update all time buckets
         $stmt = $conn->prepare("
-            UPDATE `{$table}` 
-            SET 
+            UPDATE `{$table}`
+            SET
                 `{$hourBucket}` = `{$hourBucket}` + ?,
                 `{$dayBucket}` = `{$dayBucket}` + ?,
                 `{$weekBucket}` = `{$weekBucket}` + ?,
@@ -140,14 +146,17 @@ class ConsumptionController extends Controller
      */
     public function getConsumptionHistory(Request $request)
     {
-        $db_name = $request->input('name');
+        $db_name = auth('api')->user()->name;
         $interval = $request->input('interval', '1D');
 
         if (!$db_name) {
             return response()->json(['error' => 'Database name is required'], 400);
         }
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
@@ -155,27 +164,27 @@ class ConsumptionController extends Controller
 
         $loads = ['light_loads', 'medium_loads', 'heavy_loads', 'universal_loads'];
         $loadTypes = ['light', 'medium', 'heavy', 'universal'];
-        
+
         $fields = $this->getFieldsForInterval($interval);
         $timeLabels = $this->getTimeLabelsForInterval($interval);
-        
+
         // Build chart data structure
         $chartData = [];
-        
+
         foreach ($loadTypes as $index => $loadType) {
             $table = $loads[$index];
             $chartData[$loadType] = [];
-            
+
             foreach ($fields as $i => $field) {
                 $query = "SELECT SUM(`{$field}`) as total FROM `{$table}`";
                 $result = $conn->query($query);
-                
+
                 $value = 0;
                 if ($result && $result->num_rows > 0) {
                     $row = $result->fetch_assoc();
                     $value = (int)($row['total'] ?? 0);
                 }
-                
+
                 $chartData[$loadType][] = [
                     'time' => $timeLabels[$i],
                     'value' => $value
@@ -314,7 +323,10 @@ class ConsumptionController extends Controller
             return response()->json(['error' => 'Database name is required'], 400);
         }
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -331,10 +343,10 @@ class ConsumptionController extends Controller
                 UNIQUE KEY `reset_type` (`reset_type`)
             )";
             $conn->query($sql);
-            
+
             // Seed initial values
             $now = date('Y-m-d H:i:s');
-            $conn->query("INSERT INTO `reset_logs` (`reset_type`, `last_reset_at`) VALUES 
+            $conn->query("INSERT INTO `reset_logs` (`reset_type`, `last_reset_at`) VALUES
                 ('daily', '$now'),
                 ('weekly', '$now'),
                 ('monthly', '$now'),
@@ -428,7 +440,7 @@ class ConsumptionController extends Controller
         $success = true;
         foreach ($tables as $table) {
             // Reset daily buckets and daily totals
-            $sql = "UPDATE `$table` SET 
+            $sql = "UPDATE `$table` SET
                 `h4` = 0, `h8` = 0, `h12` = 0, `h16` = 0, `h20` = 0, `h24` = 0,
                 `eu_daily` = 0, `ec_daily` = 0";
             if (!$conn->query($sql)) $success = false;
@@ -442,7 +454,7 @@ class ConsumptionController extends Controller
         $success = true;
         foreach ($tables as $table) {
             // Reset weekly buckets (days)
-            $sql = "UPDATE `$table` SET 
+            $sql = "UPDATE `$table` SET
                 `mon` = 0, `tue` = 0, `wed` = 0, `thu` = 0, `fri` = 0, `sat` = 0, `sun` = 0";
             if (!$conn->query($sql)) $success = false;
         }
@@ -455,7 +467,7 @@ class ConsumptionController extends Controller
         $success = true;
         foreach ($tables as $table) {
             // Reset monthly buckets (weeks) and monthly totals
-            $sql = "UPDATE `$table` SET 
+            $sql = "UPDATE `$table` SET
                 `week1` = 0, `week2` = 0, `week3` = 0, `week4` = 0,
                 `eu_monthly` = 0, `ec_monthly` = 0";
             if (!$conn->query($sql)) $success = false;
@@ -469,8 +481,8 @@ class ConsumptionController extends Controller
         $success = true;
         foreach ($tables as $table) {
             // Reset yearly buckets (months)
-            $sql = "UPDATE `$table` SET 
-                `jan` = 0, `feb` = 0, `mar` = 0, `apr` = 0, `may` = 0, `jun` = 0, 
+            $sql = "UPDATE `$table` SET
+                `jan` = 0, `feb` = 0, `mar` = 0, `apr` = 0, `may` = 0, `jun` = 0,
                 `jul` = 0, `aug` = 0, `sep` = 0, `oct` = 0, `nov` = 0, `dec` = 0";
             if (!$conn->query($sql)) $success = false;
         }

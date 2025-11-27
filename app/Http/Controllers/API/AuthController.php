@@ -36,12 +36,18 @@ class AuthController extends Controller
     public function create_db(Request $request)
     {
         $db_name = auth('api')->user()->name;
-        $conn = new mysqli("localhost", "root", "");
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass);
         $sql = "CREATE DATABASE `{$db_name}`";
         if ($conn->query($sql) === TRUE) {
             echo "Database created successfully";
 
-            $conn2 = new mysqli("localhost", "root", "", $db_name);
+            $db_host = env('DB_HOST');
+            $db_user = env('DB_USERNAME', 'root');
+            $db_pass = env('DB_PASSWORD');
+            $conn2 = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
             $ll = "CREATE TABLE light_loads (
                 socket_name TEXT,
@@ -139,7 +145,10 @@ class AuthController extends Controller
     public function ll_db_route(Request $request)
     {
         $db_name = auth('api')->user()->name;
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
@@ -161,7 +170,10 @@ class AuthController extends Controller
     public function ml_db_route(Request $request)
     {
         $db_name = auth('api')->user()->name;
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
@@ -183,7 +195,10 @@ class AuthController extends Controller
     public function hl_db_route(Request $request)
     {
         $db_name = auth('api')->user()->name;
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
@@ -205,7 +220,10 @@ class AuthController extends Controller
     public function ul_db_route(Request $request)
     {
         $db_name = auth('api')->user()->name;
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
@@ -231,7 +249,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -258,7 +279,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -285,7 +309,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -312,7 +339,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $power_status = $request->input('power_status');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -340,7 +370,10 @@ class AuthController extends Controller
     {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -366,7 +399,10 @@ class AuthController extends Controller
     {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -392,7 +428,10 @@ class AuthController extends Controller
     {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -418,7 +457,10 @@ class AuthController extends Controller
     {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -447,7 +489,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -474,7 +519,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -501,7 +549,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -528,7 +579,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -557,7 +611,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -585,7 +642,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -613,7 +673,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -641,7 +704,10 @@ class AuthController extends Controller
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $socket_name = $request->input('socket_name');
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
@@ -695,7 +761,8 @@ class AuthController extends Controller
     }
 
     // Consumption Update
-    public function ll_update_consumption(Request $request) {
+    public function ll_update_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
@@ -703,24 +770,31 @@ class AuthController extends Controller
         $eu_monthly = $request->input('eu_monthly');
         $ec_monthly = $request->input('ec_monthly');
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `light_loads` SET `eu_daily` = ?, `ec_daily` = ?, `eu_monthly` = ?, `ec_monthly` = ? WHERE `socket_id` = ?");
         $stmt->bind_param("iiiis", $eu_daily, $ec_daily, $eu_monthly, $ec_monthly, $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
 
-    public function ml_update_consumption(Request $request) {
+    public function ml_update_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
@@ -728,24 +802,31 @@ class AuthController extends Controller
         $eu_monthly = $request->input('eu_monthly');
         $ec_monthly = $request->input('ec_monthly');
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `medium_loads` SET `eu_daily` = ?, `ec_daily` = ?, `eu_monthly` = ?, `ec_monthly` = ? WHERE `socket_id` = ?");
         $stmt->bind_param("iiiis", $eu_daily, $ec_daily, $eu_monthly, $ec_monthly, $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
 
-    public function hl_update_consumption(Request $request) {
+    public function hl_update_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
@@ -753,24 +834,31 @@ class AuthController extends Controller
         $eu_monthly = $request->input('eu_monthly');
         $ec_monthly = $request->input('ec_monthly');
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `heavy_loads` SET `eu_daily` = ?, `ec_daily` = ?, `eu_monthly` = ?, `ec_monthly` = ? WHERE `socket_id` = ?");
         $stmt->bind_param("iiiis", $eu_daily, $ec_daily, $eu_monthly, $ec_monthly, $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
 
-    public function ul_update_consumption(Request $request) {
+    public function ul_update_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
         $eu_daily = $request->input('eu_daily');
@@ -778,104 +866,138 @@ class AuthController extends Controller
         $eu_monthly = $request->input('eu_monthly');
         $ec_monthly = $request->input('ec_monthly');
 
-        $conn = new mysqli("localhost", "root", "", $db_name);
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `universal_loads` SET `eu_daily` = ?, `ec_daily` = ?, `eu_monthly` = ?, `ec_monthly` = ? WHERE `socket_id` = ?");
         $stmt->bind_param("iiiis", $eu_daily, $ec_daily, $eu_monthly, $ec_monthly, $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
 
     // Consumption Reset
-    public function ll_reset_consumption(Request $request) {
+    public function ll_reset_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        
-        $conn = new mysqli("localhost", "root", "", $db_name);
+
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `light_loads` SET `eu_daily` = 0, `ec_daily` = 0, `eu_monthly` = 0, `ec_monthly` = 0 WHERE `socket_id` = ?");
         $stmt->bind_param("s", $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
 
-    public function ml_reset_consumption(Request $request) {
+    public function ml_reset_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        
-        $conn = new mysqli("localhost", "root", "", $db_name);
+
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `medium_loads` SET `eu_daily` = 0, `ec_daily` = 0, `eu_monthly` = 0, `ec_monthly` = 0 WHERE `socket_id` = ?");
         $stmt->bind_param("s", $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
 
-    public function hl_reset_consumption(Request $request) {
+    public function hl_reset_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        
-        $conn = new mysqli("localhost", "root", "", $db_name);
+
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `heavy_loads` SET `eu_daily` = 0, `ec_daily` = 0, `eu_monthly` = 0, `ec_monthly` = 0 WHERE `socket_id` = ?");
         $stmt->bind_param("s", $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
 
-    public function ul_reset_consumption(Request $request) {
+    public function ul_reset_consumption(Request $request)
+    {
         $db_name = auth('api')->user()->name;
         $socket_id = $request->input('socket_id');
-        
-        $conn = new mysqli("localhost", "root", "", $db_name);
+
+        $db_host = env('DB_HOST');
+        $db_user = env('DB_USERNAME', 'root');
+        $db_pass = env('DB_PASSWORD');
+        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
         if ($conn->connect_error) {
             return response()->json(['error' => 'Connection failed: ' . $conn->connect_error], 500);
         }
 
         $stmt = $conn->prepare("UPDATE `universal_loads` SET `eu_daily` = 0, `ec_daily` = 0, `eu_monthly` = 0, `ec_monthly` = 0 WHERE `socket_id` = ?");
         $stmt->bind_param("s", $socket_id);
-        
+
         if ($stmt->execute()) {
-            $stmt->close(); $conn->close();
+            $stmt->close();
+            $conn->close();
             return response()->json(['success' => true]);
         } else {
-            $error = $stmt->error; $stmt->close(); $conn->close();
+            $error = $stmt->error;
+            $stmt->close();
+            $conn->close();
             return response()->json(['error' => $error], 500);
         }
     }
