@@ -27,6 +27,11 @@ class ForgotPasswordController extends Controller
             return response()->json(['message' => 'Password reset link sent to your email']);
         }
 
-        return response()->json(['message' => 'Unable to send reset link'], 400);
+        // Check specific failure reasons
+        if ($status === Password::INVALID_USER) {
+            return response()->json(['message' => 'We can\'t find a user with that email address.'], 400);
+        }
+
+        return response()->json(['message' => 'Unable to send reset link. Reason: ' . $status], 400);
     }
 }

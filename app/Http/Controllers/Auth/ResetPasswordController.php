@@ -16,7 +16,8 @@ class ResetPasswordController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'token' => 'required',
-            'password' => 'required|min:8|confirmed',
+            'email' => 'required|email',
+            'password' => 'required|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -24,7 +25,7 @@ class ResetPasswordController extends Controller
         }
 
         $status = Password::reset(
-            $request->only('password', 'password_confirmation', 'token'),
+            $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill([
                     'password' => Hash::make($password)
@@ -40,6 +41,15 @@ class ResetPasswordController extends Controller
             return response()->json(['message' => 'Password has been reset successfully']);
         }
 
-        return response()->json(['message' => 'Unable to reset password'], 400);
+        // Return more specific error messages
+        if ($status === Password::INVALID_TOKEN) {
+            return response()->json(['message' => 'This password reset token is invalid.'], 400);
+        }
+
+        if ($status === Password::INVALID_USER) {
+            return response()->json(['message' => 'We can\'t find a user with that email address.'], 400);
+        }
+
+        return response()->json(['message' => 'Unable to reset password. Reason: ' . $status], 400);
     }
 }

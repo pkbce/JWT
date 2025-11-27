@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 use PDO;
 use PDOException;
+use Exception;
 
 class AuthController extends Controller
 {
@@ -687,6 +689,73 @@ class AuthController extends Controller
             return response()->json(['success' => true]);
         } catch (PDOException $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Change username
+    public function change_username(Request $request)
+    {
+        $new_username = $request->input('new_un');
+        $user = auth('api')->user();
+
+        if (!$new_username) {
+            return response()->json(['error' => 'New username is required'], 400);
+        }
+
+        try {
+            $user->update(['name' => $new_username]);
+            return response()->json(['success' => true, 'message' => 'Username changed successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to change username: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Change password
+    public function changePassword(Request $request)
+    {
+        $password = $request->input('password');
+        $user = auth('api')->user();
+
+        if (!$password) {
+            return response()->json(['error' => 'Password is required'], 400);
+        }
+
+        if (strlen($password) < 6) {
+            return response()->json(['error' => 'Password must be at least 6 characters'], 400);
+        }
+
+        try {
+            $user->update(['password' => bcrypt($password)]);
+            return response()->json(['success' => true, 'message' => 'Password changed successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to change password'], 500);
+        }
+    }
+
+    // Delete account
+    public function deleteAccount(Request $request)
+    {
+        $password = $request->input('password');
+        $user = auth('api')->user();
+
+        if (!$password) {
+            return response()->json(['error' => 'Password is required'], 400);
+        }
+
+        if (!Hash::check($password, $user->password)) {
+            return response()->json(['error' => 'Invalid password'], 401);
+        }
+
+        try {
+            // Delete user from database
+            $user->delete();
+
+            // Logout user
+            auth('api')->logout();
+
+            return response()->json(['success' => true, 'message' => 'Account deleted successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to delete account'], 500);
         }
     }
 }

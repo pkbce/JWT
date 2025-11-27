@@ -22,7 +22,8 @@ Route::prefix('auth')->group(function () {
         Route::post('profile', [AuthController::class, 'profile']);
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
-
+        Route::post('change-password', [AuthController::class, 'changePassword']);
+        Route::post('delete-account', [AuthController::class, 'deleteAccount']);
     });
 });
 
@@ -54,7 +55,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('ul_add_socket', [AuthController::class, 'ul_add_socket']);
 
     Route::post('create_db', [AuthController::class, 'create_db']);
-    Route::post('change_username', [AuthController::class, 'change_username']);
+    Route::post('change-username', [AuthController::class, 'change_username']);
 
     Route::post('ll_update_consumption', [AuthController::class, 'll_update_consumption']);
     Route::post('ml_update_consumption', [AuthController::class, 'ml_update_consumption']);
