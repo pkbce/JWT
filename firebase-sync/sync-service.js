@@ -5,9 +5,15 @@ require('dotenv').config();
 // ============ CONFIGURATION ============
 // TODO: Replace these with your actual values or use .env file
 
+    laravelApiUrl: process.env.LARAVEL_API_URL || 'https://jwt-prod.up.railway.app/api',
+>>>>>>> a5cf7d0759f4df0a7400c663885725b24741818c
+=======
 const CONFIG = {
     // Laravel API endpoint
-    laravelApiUrl: process.env.LARAVEL_API_URL || 'http://127.0.0.1:8000/api',
+    laravelApiUrl: process.env.LARAVEL_API_URL || 'https://jwt-prod.up.railway.app/api',
+=======
+    laravelApiUrl: process.env.LARAVEL_API_URL || 'https://jwt-prod.up.railway.app/api',
+>>>>>>> a5cf7d0759f4df0a7400c663885725b24741818c
 
     // Firebase Database URL (from Firebase Console)
     firebaseDatabaseUrl: process.env.FIREBASE_DATABASE_URL || 'https://wattch-48f16-default-rtdb.asia-southeast1.firebasedatabase.app',
