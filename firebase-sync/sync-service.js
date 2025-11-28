@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const CONFIG = {
     // Laravel API endpoint
-    laravelApiUrl: process.env.LARAVEL_API_URL || 'https://wattch-beta.vercel.app/api',
+    laravelApiUrl: process.env.LARAVEL_API_URL || 'https://jwt-prod.up.railway.app/api',
 
     // Firebase Database URL (from Firebase Console)
     firebaseDatabaseUrl: process.env.FIREBASE_DATABASE_URL || 'https://wattch-48f16-default-rtdb.asia-southeast1.firebasedatabase.app',
@@ -27,12 +27,14 @@ const CONFIG = {
 const SERVICE_ACCOUNT_PATH = './firebase-service-account.json';
 
 // ESP to load type mapping
-const ESP_TO_LOAD_TYPE = {
-    'ESP1': 'light',
-    'ESP2': 'medium',
-    'ESP3': 'heavy',
-    'ESP4': 'universal'
-};
+// ESP to load type mapping helper
+function getLoadType(espId) {
+    if (espId.startsWith('ESP1')) return 'light';
+    if (espId.startsWith('ESP2')) return 'medium';
+    if (espId.startsWith('ESP3')) return 'heavy';
+    if (espId.startsWith('ESP4')) return 'universal';
+    return null;
+}
 
 // ============ INITIALIZATION ============
 
@@ -65,15 +67,26 @@ const syncState = {
 };
 
 // Initialize sync times for each ESP
-Object.keys(ESP_TO_LOAD_TYPE).forEach(espId => {
-    syncState.lastSyncTime[espId] = Date.now();
-    syncState.lastPowerValue[espId] = 0;
-});
+// Initialize sync times for each ESP
+// We will initialize these dynamically as we discover devices
+// Object.keys(ESP_TO_LOAD_TYPE).forEach(espId => {
+//     syncState.lastSyncTime[espId] = Date.now();
+//     syncState.lastPowerValue[espId] = 0;
+// });
 
 // ============ SYNC LOGIC ============
 
 async function syncToDatabase(espId, espData) {
     const now = Date.now();
+    // Initialize state if new device
+    if (!syncState.lastSyncTime[espId]) {
+        syncState.lastSyncTime[espId] = now;
+        syncState.lastPowerValue[espId] = 0;
+        // Don't return, let it sync the first value if needed, or just wait for next change
+        // But for first run, we might want to sync immediately if power > 0?
+        // Let's just initialize and wait for next update or interval
+    }
+
     const lastSync = syncState.lastSyncTime[espId];
     const durationSeconds = (now - lastSync) / 1000;
 
@@ -95,7 +108,7 @@ async function syncToDatabase(espId, espData) {
             `${CONFIG.laravelApiUrl}/consumption/sync-firebase`,
             {
                 name: CONFIG.userDatabase,
-                load_type: ESP_TO_LOAD_TYPE[espId],
+                load_type: getLoadType(espId),
                 socket_id: espId,
                 power: currentPower,
                 duration_seconds: durationSeconds
@@ -144,8 +157,9 @@ firebaseRef.on('value', (snapshot) => {
     }
 
     // Sync each ESP device
-    Object.keys(ESP_TO_LOAD_TYPE).forEach(espId => {
-        if (data[espId]) {
+    Object.keys(data).forEach(espId => {
+        // Only process keys that look like ESP IDs (ESP1, ESP1_1, etc.)
+        if (espId.startsWith('ESP')) {
             syncToDatabase(espId, data[espId]);
         }
     });
@@ -161,7 +175,7 @@ setInterval(() => {
     console.log(`  Errors: ${syncState.errorCount}`);
     console.log(`  Success rate: ${syncState.syncCount > 0 ? ((syncState.syncCount / (syncState.syncCount + syncState.errorCount)) * 100).toFixed(1) : 0}%`);
 
-    Object.keys(ESP_TO_LOAD_TYPE).forEach(espId => {
+    Object.keys(syncState.lastSyncTime).forEach(espId => {
         const lastSync = ((Date.now() - syncState.lastSyncTime[espId]) / 1000).toFixed(0);
         console.log(`  ${espId}: ${syncState.lastPowerValue[espId]}W (last sync ${lastSync}s ago)`);
     });
