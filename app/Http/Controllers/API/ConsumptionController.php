@@ -85,14 +85,19 @@ class ConsumptionController extends Controller
         }
 
         try {
-            $watt_hours = ($power * $duration_seconds) / 3600;
-            $wh_int = (int) ($watt_hours * 1000);
-
+            // Calculate kWh: (Watts / 1000) * (Seconds / 3600)
+            $kwh = ($power / 1000) * ($duration_seconds / 3600);
+            
+            // Round to 5 decimals for storage/display consistency, but storing higher precision is also fine.
+            // User asked to "show at most 5 decimals", so we can round here or at display.
+            // Let's keep precision in DB and round on output.
+            
             $hourBucket = $this->getCurrentTimeBucket();
             $dayBucket = $this->getCurrentDayBucket();
             $weekBucket = $this->getCurrentWeekBucket();
             $monthBucket = $this->getCurrentMonthBucket();
 
+            // Try to update existing row
             $stmt = $conn->prepare("
                 UPDATE {$table}
                 SET
@@ -103,12 +108,27 @@ class ConsumptionController extends Controller
                 WHERE socket_id = ?
             ");
 
-            $stmt->execute([$wh_int, $wh_int, $wh_int, $wh_int, $socket_id]);
+            $stmt->execute([$kwh, $kwh, $kwh, $kwh, $socket_id]);
+
+            // If no row updated, insert new row
+            if ($stmt->rowCount() === 0) {
+                $stmt = $conn->prepare("
+                    INSERT INTO {$table} (
+                        socket_id, 
+                        socket_name, 
+                        {$hourBucket}, 
+                        {$dayBucket}, 
+                        {$weekBucket}, 
+                        {$monthBucket}
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                ");
+                $stmt->execute([$socket_id, $socket_id, $kwh, $kwh, $kwh, $kwh]);
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Consumption updated',
-                'watt_hours' => $watt_hours,
+                'kwh_added' => number_format($kwh, 6),
                 'buckets' => [
                     'hour' => $hourBucket,
                     'day' => $dayBucket,
@@ -150,7 +170,8 @@ class ConsumptionController extends Controller
                     $stmt->execute();
                     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                    $value = (int) ($result['total'] ?? 0);
+                    // Return float value, rounded to 6 decimals
+                    $value = round((float) ($result['total'] ?? 0), 6);
 
                     $chartData[$loadType][] = [
                         'time' => $timeLabels[$i],
@@ -274,66 +295,83 @@ class ConsumptionController extends Controller
         }
 
         try {
-            $checkTable = $conn->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='reset_logs'");
-            $checkTable->execute();
-            $tableExists = $checkTable->fetch();
+            // Ensure table exists
+            $conn->exec("CREATE TABLE IF NOT EXISTS reset_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reset_type VARCHAR(50) UNIQUE NOT NULL,
+                last_reset_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )");
 
-            if (!$tableExists) {
-                $sql = "CREATE TABLE reset_logs (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    reset_type VARCHAR(50) UNIQUE NOT NULL,
-                    last_reset_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )";
-                $conn->exec($sql);
-
-                $now = date('Y-m-d H:i:s');
-                $stmt = $conn->prepare("INSERT INTO reset_logs (reset_type, last_reset_at) VALUES (?, ?)");
-                foreach (['daily', 'weekly', 'monthly', 'yearly'] as $type) {
-                    $stmt->execute([$type, $now]);
-                }
+            // Ensure rows exist
+            $now = date('Y-m-d H:i:s');
+            $stmt = $conn->prepare("INSERT OR IGNORE INTO reset_logs (reset_type, last_reset_at) VALUES (?, ?)");
+            foreach (['daily', 'weekly', 'monthly', 'yearly'] as $type) {
+                $stmt->execute([$type, $now]);
             }
 
             $resetsPerformed = [];
             $errors = [];
 
-            $todayStart = strtotime('today midnight');
-            if ($this->shouldReset($conn, 'daily', $todayStart)) {
-                if ($this->performDailyReset($conn)) {
-                    $this->updateLastReset($conn, 'daily');
-                    $resetsPerformed[] = 'daily';
-                } else {
-                    $errors[] = 'Daily reset failed';
-                }
-            }
+            // Use transaction for atomicity
+            $conn->beginTransaction();
 
-            $weekStart = strtotime('monday this week midnight');
-            if ($this->shouldReset($conn, 'weekly', $weekStart)) {
-                if ($this->performWeeklyReset($conn)) {
-                    $this->updateLastReset($conn, 'weekly');
-                    $resetsPerformed[] = 'weekly';
-                } else {
-                    $errors[] = 'Weekly reset failed';
+            try {
+                $todayStart = strtotime('today midnight');
+                if ($this->shouldReset($conn, 'daily', $todayStart)) {
+                    if ($this->performDailyReset($conn)) {
+                        if ($this->updateLastReset($conn, 'daily')) {
+                            $resetsPerformed[] = 'daily';
+                        } else {
+                            throw new \Exception('Failed to update daily reset log');
+                        }
+                    } else {
+                        throw new \Exception('Daily reset failed');
+                    }
                 }
-            }
 
-            $monthStart = strtotime('first day of this month midnight');
-            if ($this->shouldReset($conn, 'monthly', $monthStart)) {
-                if ($this->performMonthlyReset($conn)) {
-                    $this->updateLastReset($conn, 'monthly');
-                    $resetsPerformed[] = 'monthly';
-                } else {
-                    $errors[] = 'Monthly reset failed';
+                $weekStart = strtotime('monday this week midnight');
+                if ($this->shouldReset($conn, 'weekly', $weekStart)) {
+                    if ($this->performWeeklyReset($conn)) {
+                        if ($this->updateLastReset($conn, 'weekly')) {
+                            $resetsPerformed[] = 'weekly';
+                        } else {
+                            throw new \Exception('Failed to update weekly reset log');
+                        }
+                    } else {
+                        throw new \Exception('Weekly reset failed');
+                    }
                 }
-            }
 
-            $yearStart = strtotime('first day of january this year midnight');
-            if ($this->shouldReset($conn, 'yearly', $yearStart)) {
-                if ($this->performYearlyReset($conn)) {
-                    $this->updateLastReset($conn, 'yearly');
-                    $resetsPerformed[] = 'yearly';
-                } else {
-                    $errors[] = 'Yearly reset failed';
+                $monthStart = strtotime('first day of this month midnight');
+                if ($this->shouldReset($conn, 'monthly', $monthStart)) {
+                    if ($this->performMonthlyReset($conn)) {
+                        if ($this->updateLastReset($conn, 'monthly')) {
+                            $resetsPerformed[] = 'monthly';
+                        } else {
+                            throw new \Exception('Failed to update monthly reset log');
+                        }
+                    } else {
+                        throw new \Exception('Monthly reset failed');
+                    }
                 }
+
+                $yearStart = strtotime('first day of january this year midnight');
+                if ($this->shouldReset($conn, 'yearly', $yearStart)) {
+                    if ($this->performYearlyReset($conn)) {
+                        if ($this->updateLastReset($conn, 'yearly')) {
+                            $resetsPerformed[] = 'yearly';
+                        } else {
+                            throw new \Exception('Failed to update yearly reset log');
+                        }
+                    } else {
+                        throw new \Exception('Yearly reset failed');
+                    }
+                }
+
+                $conn->commit();
+            } catch (\Exception $e) {
+                $conn->rollBack();
+                $errors[] = $e->getMessage();
             }
 
             return response()->json([
@@ -369,7 +407,8 @@ class ConsumptionController extends Controller
         try {
             $now = date('Y-m-d H:i:s');
             $stmt = $conn->prepare("UPDATE reset_logs SET last_reset_at = ? WHERE reset_type = ?");
-            $stmt->execute([$now, $type]);
+            $result = $stmt->execute([$now, $type]);
+            return $result && $stmt->rowCount() > 0;
         } catch (PDOException $e) {
             return false;
         }
