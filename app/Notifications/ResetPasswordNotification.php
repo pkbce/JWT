@@ -14,7 +14,7 @@ class ResetPasswordNotification extends ResetPassword
     public function toMail($notifiable)
     {
         // Construct the frontend URL directly without using route() helper
-        $frontendUrl = "https://wattch-beta.vercel.app/reset-password?token={$this->token}&email={$notifiable->getEmailForPasswordReset()}";
+        $frontendUrl = "http://localhost:9002/reset-password?token={$this->token}&email={$notifiable->getEmailForPasswordReset()}";
 
         return (new MailMessage)
             ->subject('Reset Password Notification')

@@ -10,6 +10,8 @@ use App\Http\Controllers\Auth\SocialAuthController;
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
+    Route::post('reset-password', [ResetPasswordController::class, 'reset']);
 
 
     // Social Authentication Routes
@@ -69,8 +71,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('consumption/history', [ConsumptionController::class, 'getConsumptionHistory']);
 });
 
-Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
-Route::post('reset-password', [ResetPasswordController::class, 'reset']);
+
 
 
 // Consumption data endpoints (Public for Sync Service)
